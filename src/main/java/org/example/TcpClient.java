@@ -70,6 +70,7 @@ public class TcpClient implements Runnable, Closeable {
 
     @Override
     public void close() throws IOException {
+        this.selector.close();
         this.socket.close();
     }
 }

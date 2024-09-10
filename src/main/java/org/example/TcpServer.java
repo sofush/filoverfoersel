@@ -106,8 +106,6 @@ public class TcpServer implements Runnable, Closeable {
                 client.write(outBuffer);
                 System.out.println("Wrote " + count + " bytes of the file to the client.");
             }
-
-            client.close();
         } catch (Exception e) {
             System.err.println("Could not send file to client: " + e);
             key.cancel();
@@ -148,6 +146,15 @@ public class TcpServer implements Runnable, Closeable {
                         key.cancel();
                     }
                 }
+
+                if (!key.isValid()) {
+                    try {
+                        key.channel().close();
+                        System.out.println("Closed invalid key's channel.");
+                    } catch (IOException e) {
+                        System.err.println("Could not close cancelled key's channel.");
+                    }
+                }
             }
 
             keys.clear();
@@ -156,6 +163,10 @@ public class TcpServer implements Runnable, Closeable {
 
     @Override
     public void close() throws IOException {
+        for (var key : this.selector.keys()) {
+            key.channel().close();
+        }
+
         this.socket.close();
         this.selector.close();
     }
